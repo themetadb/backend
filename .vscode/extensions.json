@@ -1,0 +1,10 @@
+{
+    "recommendations": [
+        "eamodio.gitlens",
+        "github.vscode-pull-request-github",
+        "editorconfig.editorconfig",
+        "fabiospampinato.vscode-todo-plus",
+        "ms-python.vscode-pylance",
+        "davidanson.vscode-markdownlint"
+    ]
+}
