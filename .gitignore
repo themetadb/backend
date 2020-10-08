@@ -1,4 +1,6 @@
 test.db
+flake8.output
+mypy.output
 
 
 # Byte-compiled / optimized / DLL files

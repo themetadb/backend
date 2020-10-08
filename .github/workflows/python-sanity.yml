@@ -5,3 +5,91 @@ on:
     branches:
     - master
   pull_request:
+
+
+jobs:
+  build:
+    name: Running sanity tests
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [3.6, 3.7, 3.8]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Get pip cache dir
+      id: pip-cache
+      run: |
+        python -m pip install --upgrade pip
+        echo "::set-output name=dir::$(pip cache dir)"
+
+    - name: pip cache
+      uses: actions/cache@v2
+      with:
+        path: ${{ steps.pip-cache.outputs.dir }}
+        key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/requirements*.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-${{ matrix.python-version }}-
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt -r requirements-dev.txt
+
+    - name: Lint with flake8
+      id: flake8
+      run: |
+        rm -f flake8.output
+        flake8 . --statistics --output-file=flake8.output && {
+          echo "::set-output name=lint::ok"
+        } || {
+          echo "::set-output name=lint::error"
+        }
+
+        cat flake8.output | awk -F: '{
+          if ($0 ~ /^\./) {
+            gsub(/^[ \t]+/,"",$4);
+            print "::error file=" $1 ",line=" $2 ",col=" $3 "::" $4
+          } else {
+            print $0
+          }
+        }'
+
+    - name: Run mypy
+      id: mypy
+      run: |
+        rm -f mypy.output
+        mypy . > mypy.output && {
+          echo "::set-output name=mypy::ok"
+        } || {
+          echo "::set-output name=mypy::error"
+        }
+
+        cat mypy.output | awk -F: '{
+          if ($0 ~ /: error: /) {
+            gsub(/^[ \t]+/,"",$5);
+            print "::error file=" $1 ",line=" $2 ",col=" $3 "::" $5
+          } else {
+            print $0
+          }
+        }'
+
+    - name: Error on flake8
+      if: ${{ steps.flake8.outputs.lint != 'ok' }}
+      run: |
+        flake8 . --count --statistics --exit-zero --quiet
+        echo "::error ::Please correct flake8 warnings and errors"
+        exit 1
+
+
+    - name: Error on mypy
+      if: ${{ steps.mypy.outputs.mypy != 'ok' }}
+      run: |
+        tail -n 1 mypy.output
+        echo "::error ::Please correct mypy errors"
+        exit 1
