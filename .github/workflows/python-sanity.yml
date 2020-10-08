@@ -1,0 +1,7 @@
+name: Python sanity
+
+on:
+  push:
+    branches:
+    - master
+  pull_request:
