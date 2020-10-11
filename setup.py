@@ -1,14 +1,10 @@
 #!/usr/bin/env python3
-import re
-from typing import Match
+# -*- coding: utf-8 -*-
 
 from setuptools import setup, find_packages  # type: ignore
+from tools.utils import get_version
 
-
-with open('themetadb/backend/__init__.py', 'r') as fh:
-    version_match = re.search(r'__version__ *= *["\'](.*?)["\']', fh.read())
-    assert isinstance(version_match, Match)
-    version = version_match.group(1)
+version = get_version()
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
