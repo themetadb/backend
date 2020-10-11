@@ -5,10 +5,10 @@ from fastapi import Depends, FastAPI, HTTPException
 # from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 
-from . import crud, schemas
+from . import crud, schemas, __version__, app_title
 from .database import get_db
 
-app = FastAPI()
+app = FastAPI(version=__version__, title=app_title)
 
 # app.mount("/static", StaticFiles(packages=['themetadb.backend']), name="static")
 
